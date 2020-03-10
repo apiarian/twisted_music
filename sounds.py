@@ -10,18 +10,21 @@ from signals import sine, time_array, adsr_envelope, add_at
 
 
 class Sound(object):
-    def __init__(self, freq, duration, start, tone=sine):
-        self._freq = freq
+    def __init__(self, frequency_source, duration, start, tone=sine):
+        self._frequency_source = frequency_source
         self._duration = duration
         self._start = start
         self._tone = tone
 
     def copy(self):
-        return Sound(self._freq, self._duration, self._start, self._tone)
+        return Sound(self._frequency_source, self._duration, self._start, self._tone)
 
     @property
-    def freq(self):
-        return self._freq
+    def frequency(self):
+        if hasattr(self._frequency_source, "frequency"):
+            return self._frequency_source.frequency
+        else:
+            return self._frequency_source
 
     @property
     def duration(self):
@@ -56,9 +59,9 @@ class Sound(object):
             0.1,
             0.9,
             0.15,
-            self._tone(self.freq, time_array(self.duration)),
+            self._tone(self.frequency, time_array(self.duration)),
         )
 
     def __repr__(self):
-        return f"<Sound {self.freq}Hz {self.duration}s at {self.start}s>"
+        return f"<Sound {self._frequency_source}Hz {self.duration}s at {self.start}s>"
 
