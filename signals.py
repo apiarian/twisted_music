@@ -19,6 +19,17 @@ def time_array(duration, Fs=Fs):
 
 def sine(freq, t):
     return np.sin(2.0 * np.pi * freq * t)
+    
+
+def square(freq, t):
+    return np.sign(sine(freq, t))
+    
+def sine_with_overtones(overtones, freq, t):
+    result = sine(freq, t)
+    for multiplier, amount in overtones:
+        result += amount * sine(freq * multiplier, t)
+        
+    return result
 
 
 def empty():

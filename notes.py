@@ -55,6 +55,10 @@ class Note(object):
         target_idx = note_order.index(base_note + "#" if sharp else base_note)
 
         return A4.add_octaves(octave - 4).add_half_steps(target_idx - A_idx)
+        
+    @staticmethod
+    def from_midi_note(note):
+        return Note(440 * pow(2, (note - 69)/12))
 
     def copy(self):
         return Note(self.frequency)

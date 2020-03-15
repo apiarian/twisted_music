@@ -79,18 +79,21 @@ class Stream(object):
         audio_cleanup = None
         for stream in streams:
             waveform = stream.waveform(offset)
+            max_start = stream.max_start
 
             if audio_cleanup is not None:
                 audio_cleanup()
 
             if deadline is not None:
+                if (deadline - time.monotonic()) < 1:
+                    print("less than one second left to wait")
                 time.sleep(deadline - time.monotonic())
             # NOTE: we want to do the most we can between starting the playback
             # and sleeping. So there should be a minimum of code right here.
             audio_cleanup = play_sound_asynchronously(waveform, waveform)
 
-            deadline = time.monotonic() + stream.max_start - offset
-            offset = stream.max_start
+            deadline = time.monotonic() + max_start - offset
+            offset = max_start
 
 
 def chunk_and_play(sounds, length_break=4):

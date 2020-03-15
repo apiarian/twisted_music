@@ -10,10 +10,11 @@ from signals import sine, time_array, adsr_envelope, add_at
 
 
 class Sound(object):
-    def __init__(self, frequency_source, duration, start, tone=sine):
+    def __init__(self, frequency_source, duration, start, volume=1.0, tone=sine):
         self._frequency_source = frequency_source
         self._duration = duration
         self._start = start
+        self._volume = volume
         self._tone = tone
 
     def copy(self):
@@ -37,6 +38,10 @@ class Sound(object):
     @property
     def end(self):
         return self.start + self.duration
+        
+    @property
+    def volume(self):
+        return self._volume
 
     def delay(self, offset):
         self._start += offset
@@ -54,7 +59,7 @@ class Sound(object):
 
     @property
     def waveform(self):
-        return 0.4 * adsr_envelope(
+        return self.volume * 0.4 * adsr_envelope(
             0.05,
             0.1,
             0.9,
