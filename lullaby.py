@@ -4,6 +4,7 @@ import itertools
 import tempfile
 import os
 import random
+import functools
 
 import numpy as np
 
@@ -15,9 +16,9 @@ from streams import (
     log_sounds,
     ensure_positive,
 )
-from sounds import Sound
+from sounds import Tone
 from signals import prevent_device_sleep
-from notes import Note
+from notes import scientific_note_frequency, add_cents
 
 
 twinkle_twinkle_little_star_notes = [
@@ -41,7 +42,17 @@ for phrase in twinkle_twinkle_little_star_notes:
     ):
         duration = note_length * timing
         twinkle_twinkle_little_star.add_sound(
-            Sound(Note.from_scientific(note), duration, current_time)
+            Tone(
+                start=current_time,
+                duration=duration,
+                frequency=scientific_note_frequency(note),
+                overtones=[],
+                volume=0.4,
+                attack_seconds=0.1,
+                decay_seconds=0.1,
+                sustain_level=0.75,
+                release_seconds=0.2,
+            )
         )
         current_time += duration
 
@@ -58,11 +69,11 @@ def fuzzy_duration(sounds):
         yield sound.stretched(random.uniform(0.9, 1.1))
 
 
-def dedune(sounds):
-    for sound in sounds:
-        detuned = sound.copy()
-        detuned._frequency_source.add_cents(-50)
-        yield detuned
+def detune(tones):
+    for tone in tones:
+        yield tone.detuned(
+            functools.partial(add_cents, random.randint(-50, 50))
+        )
 
 
 loop, tap = make_loop_and_tap()
@@ -73,9 +84,9 @@ with prevent_device_sleep():
         log_sounds(
             window_sort(
                 ensure_positive(
-                    dedune(
-                        fuzzy_duration(
-                            fuzzy_start(
+                    fuzzy_duration(
+                        fuzzy_start(
+                            detune(
                                 tap(
                                     loop(
                                         twinkle_twinkle_little_star.stream,

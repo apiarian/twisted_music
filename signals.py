@@ -13,30 +13,27 @@ import numpy as np
 Fs = 44100
 
 
-def time_array(duration, Fs=Fs):
-    return np.linspace(0, duration, round(duration * Fs))
-
-
-def sine(freq, t):
-    return np.sin(2.0 * np.pi * freq * t)
+def time_array(duration):
+    return np.linspace(0, duration, n_samples(duration))
     
 
-def square(freq, t):
-    return np.sign(sine(freq, t))
+def n_samples(duration):
+    return int(round(duration * Fs))
+
+
+def sine(freq, phase, t):
+    return np.sin(2.0 * np.pi * freq * t + phase)
     
-def sine_with_overtones(overtones, freq, t):
-    result = sine(freq, t)
-    for multiplier, amount in overtones:
-        result += amount * sine(freq * multiplier, t)
-        
-    return result
 
-
+def square(freq, phase, t):
+    return np.sign(sine(freq, phase, t))
+    
+    
 def empty():
     return np.array([])
 
 
-def add_at(base, extra, t, Fs=Fs):
+def add_at(base, extra, t):
     if t < 0:
         raise Exception("negative times are not supported")
 
@@ -50,31 +47,6 @@ def add_at(base, extra, t, Fs=Fs):
     return base
 
 
-def adsr_envelope(attack, decay, sustain, release, data):
-    total_length = len(data)
-
-    attack_length, decay_length, release_length = (
-        round(section * total_length) for section in (attack, decay, release)
-    )
-    sustain_length = total_length - (
-        attack_length + decay_length + release_length
-    )
-    if sustain_length < 0:
-        raise Exception(
-            "attack, decay, and release cannot take up more than 100% of the signal"
-        )
-
-    shape = np.concatenate(
-        (
-            np.linspace(0, 1, attack_length),
-            np.linspace(1, sustain, decay_length),
-            sustain * np.ones((sustain_length,)),
-            np.linspace(sustain, 0, release_length),
-        )
-    )
-    return data * shape
-
-
 def _join_channels(left, right):
     target_length = max(len(left), len(right))
     if len(left) < target_length:
@@ -84,7 +56,7 @@ def _join_channels(left, right):
     return np.vstack((left, right))
 
 
-def write_sound(left, right, filename, Fs=Fs, bits_per_sample=32):
+def write_sound(left, right, filename, bits_per_sample=32):
     CHANNELS = 2
 
     data = _join_channels(left, right)

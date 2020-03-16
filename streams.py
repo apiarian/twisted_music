@@ -2,7 +2,7 @@ import itertools
 import time
 
 from signals import empty, add_at, play_sound_asynchronously
-from sounds import Sound
+from sounds import Tone
 
 
 class Stream(object):
@@ -85,9 +85,11 @@ class Stream(object):
                 audio_cleanup()
 
             if deadline is not None:
-                if (deadline - time.monotonic()) < 1:
+                time_left = deadline - time.monotonic()
+                if (time_left) < 1:
                     print("less than one second left to wait")
-                time.sleep(deadline - time.monotonic())
+                if time_left > 0:
+                    time.sleep(time_left)
             # NOTE: we want to do the most we can between starting the playback
             # and sleeping. So there should be a minimum of code right here.
             audio_cleanup = play_sound_asynchronously(waveform, waveform)
@@ -173,9 +175,45 @@ def log_sounds(sounds):
 
 if __name__ == "__main__":
     s = Stream()
-    s.add_sound(Sound(440, 1, 0))
-    s.add_sound(Sound(660, 1, 0.5))
-    s.add_sound(Sound(880, 0.5, 2))
+    s.add_sound(
+        Tone(
+            start=0,
+            duration=1,
+            frequency=440,
+            overtones=[],
+            volume=0.5,
+            attack_seconds=0.1,
+            decay_seconds=0.1,
+            sustain_level=0.9,
+            release_seconds=0.1,
+        )
+    )
+    s.add_sound(
+        Tone(
+            start=0.5,
+            duration=1,
+            frequency=660,
+            overtones=[],
+            volume=0.5,
+            attack_seconds=0.1,
+            decay_seconds=0.1,
+            sustain_level=0.9,
+            release_seconds=0.1,
+        )
+    )
+    s.add_sound(
+        Tone(
+            start=2,
+            duration=0.5,
+            frequency=880,
+            overtones=[],
+            volume=0.5,
+            attack_seconds=0.1,
+            decay_seconds=0.1,
+            sustain_level=0.9,
+            release_seconds=0.1,
+        )
+    )
 
     print("just once")
     for snd in log_sounds(s.stream):

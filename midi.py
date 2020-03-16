@@ -2,10 +2,11 @@ import mido
 from collections import defaultdict
 import functools
 
+from numpy import pi
+
 from streams import Stream, chunk_and_play
-from sounds import Sound
-from notes import Note
-from signals import square, sine_with_overtones
+from sounds import Tone, Overtone
+from notes import midi_note_frequency
 
 
 def build_stream_from_midi(filename):
@@ -68,15 +69,21 @@ def build_stream_from_midi(filename):
             if duration > 5:
                 raise Exception(f"would have created a very long note: {msg}")
             stream.add_sound(
-                Sound(
-                    Note.from_midi_note(msg.note),
-                    duration,
-                    started,
-                    volume=initial_velocity / 127,
-                    tone=functools.partial(
-                        sine_with_overtones,
-                        [(2, 0.5), (3, 0.3), (4, 0.2), (5, 0.2)],
-                    ),
+                Tone(
+                    start=started,
+                    duration=duration,
+                    frequency=midi_note_frequency(msg.note),
+                    overtones=[
+                        Overtone(2, 0.5 * pi, 0.5),
+                        Overtone(3, 0, 0.3),
+                        Overtone(4, 0.25 * pi, 0.2),
+                        Overtone(5, 0, 0.2),
+                    ],
+                    volume=0.4 * initial_velocity / 127,
+                    attack_seconds=0.1,
+                    decay_seconds=0.1,
+                    sustain_level=0.75,
+                    release_seconds=0.1,
                 )
             )
 
@@ -99,7 +106,7 @@ def build_stream_from_midi(filename):
 
 
 if __name__ == "__main__":
-    mid = mido.MidiFile("cs1-1pre.mid")
+    mid = mido.MidiFile("gnossiennes_1.mid")
     for track_num, track in enumerate(mid.tracks):
         # print(f"{track_num}: {track}")
         for msg in track:
@@ -115,6 +122,7 @@ if __name__ == "__main__":
         print(msg)
 
     stream = build_stream_from_midi("satie_gnoissienne1.midi")
-    #stream = build_stream_from_midi("cs1-1pre.mid")
-    chunk_and_play(stream.stream, length_break=5)
+    stream = build_stream_from_midi("cs1-1pre.mid")
+    #stream = build_stream_from_midi("gnossiennes_1.mid")
+    chunk_and_play(stream.stream, length_break=10)
 
