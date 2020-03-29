@@ -49,7 +49,7 @@ class Stream(object):
             )
         return chunk_waveform
 
-    def deplayed(self, offset):
+    def delayed(self, offset):
         result = Stream()
         for sound in self.sounds:
             result.add_sound(sound.delayed(offset))
